@@ -1,4 +1,4 @@
-<script lang="ts">
+``<script lang="ts">
   import { onMount } from 'svelte';
   import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
   import ErrorPopup from '$lib/components/ErrorPopup.svelte';
@@ -21,27 +21,6 @@
     subject: string;
   }
 
-  interface Z3Context {
-    String: {
-      const: (name: string) => any;
-      val: (value: string) => any;
-    };
-    Bool: {
-      and: (args: any[]) => any;
-      not: (arg: any) => any;
-      ite: (condition: any, then: any, else_: any) => any;
-    };
-    Int: {
-      val: (value: number) => any;
-    };
-  }
-
-  interface Z3Solver {
-    add: (constraint: any) => void;
-    check: () => Promise<string>;
-    model: () => any;
-  }
-
   interface ScheduleSlot {
     teacher: string;
     subject: string;
@@ -54,7 +33,6 @@
   let numClasses = 5;
   let isGenerating = false;
   let errorMessage = '';
-  let z3Module: any;
   let teachers: string[] = [];
   let newTeacher = '';
   let schedule: ScheduleGrid = [];
@@ -67,7 +45,6 @@
   let generationStartTime: number = 0;
   let elapsedTime: string = '0:00';
   let generationStatus: string = '';
-  let timerInterval: number | null = null;
 
   let showErrorPopup = false;
   let popupMessage = '';
@@ -123,7 +100,7 @@
   function addSubjectToClass(classSubject: ClassSubject) {
     classSubject.subjects = [...classSubject.subjects, {
       subject: '',
-      periodsPerWeek: 1
+      periodsPerWeek: 0
     }];
     classSubjects = [...classSubjects];
   }
@@ -513,23 +490,18 @@
   </div>
 {:else}
   <main class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-6">School Schedule Generator</h1>
-
-    <!-- Configuration Management -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Configuration Management</h2>
-      <div class="flex gap-4">
-        <label class="bg-purple-500 text-white px-4 py-2 rounded cursor-pointer">
-          Load Configuration
-          <input
-            type="file"
-            accept=".json"
-            on:change={handleConfigUpload}
-            class="hidden"
-          />
-        </label>
-      </div>
-    </section>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">School Schedule Generator</h1>
+      <label class="bg-purple-500 text-white px-4 py-2 rounded cursor-pointer">
+        Load Config
+        <input
+          type="file"
+          accept=".json"
+          on:change={handleConfigUpload}
+          class="hidden"
+        />
+      </label>
+    </div>
 
     <!-- Number of Classes Input -->
     <section class="mb-8">
@@ -702,7 +674,7 @@
         on:click={saveConfiguration}
         class="bg-purple-500 text-white px-4 py-2 rounded"
       >
-        Save Configuration
+        Save Config
       </button>
       <button
         on:click={generateSchedule}
