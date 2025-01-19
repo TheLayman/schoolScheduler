@@ -1,4 +1,4 @@
-``<script lang="ts">
+<script lang="ts">
   import { onMount } from 'svelte';
   import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
   import ErrorPopup from '$lib/components/ErrorPopup.svelte';
@@ -509,60 +509,62 @@
     <div class="text-xl">Loading...</div>
   </div>
 {:else}
-  <main class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">School Schedule Generator</h1>
-      <label class="bg-purple-500 text-white px-4 py-2 rounded cursor-pointer">
-        Load Config
-        <input
-          type="file"
-          accept=".json"
-          on:change={handleConfigUpload}
-          class="hidden"
-        />
-      </label>
+  <main class="container mx-auto p-6 max-w-6xl">
+    <!-- Header section with improved styling -->
+    <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold text-gray-800">School Schedule Generator</h1>
+      <div class="flex items-center gap-6">
+        <div class="flex gap-3 items-center">
+          <label for="numClasses" class="font-medium text-gray-700">Classes:</label>
+          <input
+            id="numClasses"
+            type="number"
+            bind:value={numClasses}
+            min="1"
+            max="10"
+            class="border border-gray-300 p-2 rounded-md w-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+          />
+        </div>
+        <button
+          on:click={() => document.getElementById('configFile').click()}
+          class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2.5 rounded-md hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm"
+        >
+          Load Config
+          <input
+            id="configFile"
+            type="file"
+            accept=".json"
+            on:change={handleConfigUpload}
+            class="hidden"
+          />
+        </button>
+      </div>
     </div>
 
-    <!-- Number of Classes Input -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Configuration</h2>
-      <div class="flex gap-2 items-center">
-        <label for="numClasses" class="font-medium">Number of Classes:</label>
-        <input
-          id="numClasses"
-          type="number"
-          bind:value={numClasses}
-          min="1"
-          max="10"
-          class="border p-2 rounded w-24"
-        />
-      </div>
-    </section>
-
-    <!-- Subjects -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Subjects</h2>
-      <div class="flex gap-2 mb-4">
+    <!-- Section styling template for all sections -->
+    <section class="mb-8 bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Subjects</h2>
+      <div class="flex gap-3 mb-6">
         <input
           type="text"
           bind:value={newSubject}
           placeholder="Enter subject name"
-          class="border p-2 rounded"
+          class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
         />
         <button
           on:click={addSubject}
-          class="bg-blue-500 text-white px-4 py-2 rounded"
+          class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2.5 rounded-md hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
         >
           Add Subject
         </button>
       </div>
-      <ul class="space-y-2">
+      <ul class="space-y-3">
         {#each subjects as subject, i}
-          <li class="flex items-center gap-2">
-            <span>{subject}</span>
+          <li class="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+            <span class="text-gray-700">{subject}</span>
             <button
               on:click={() => removeSubject(i)}
-              class="text-red-500"
+              class="text-red-500 hover:text-red-700 transition-colors p-1.5 rounded-md hover:bg-red-50"
             >
               Remove
             </button>
@@ -571,30 +573,30 @@
       </ul>
     </section>
 
-    <!-- Teacher Input Section -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Teachers</h2>
-      <div class="flex gap-2 mb-4">
+    <!-- Apply similar styling to other sections -->
+    <section class="mb-8 bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Teachers</h2>
+      <div class="flex gap-3 mb-6">
         <input
           type="text"
           bind:value={newTeacher}
           placeholder="Enter teacher name"
-          class="border p-2 rounded"
+          class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
         />
         <button
           on:click={addTeacher}
-          class="bg-blue-500 text-white px-4 py-2 rounded"
+          class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2.5 rounded-md hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm"
         >
           Add Teacher
         </button>
       </div>
-      <ul class="space-y-2">
+      <ul class="space-y-3">
         {#each teachers as teacher, i}
-          <li class="flex items-center gap-2">
-            <span>{teacher}</span>
+          <li class="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-all">
+            <span class="text-gray-700">{teacher}</span>
             <button
               on:click={() => removeTeacher(i)}
-              class="text-red-500"
+              class="text-red-500 hover:text-red-700 transition-colors p-1.5 rounded-md hover:bg-red-50"
             >
               Remove
             </button>
@@ -603,22 +605,22 @@
       </ul>
     </section>
 
-    <!-- Teacher-Subject-Class Assignment Section -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Teacher Assignments</h2>
+    <!-- Teacher Assignments Section -->
+    <section class="mb-8 bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Teacher Assignments</h2>
       <button
         on:click={addAssignment}
-        class="bg-green-500 text-white px-4 py-2 rounded mb-4"
+        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2.5 rounded-md hover:from-green-600 hover:to-green-700 transition-all shadow-sm mb-6"
       >
         Add Assignment
       </button>
-      <div class="space-y-4">
+      <div class="space-y-6">
         {#each teacherAssignments as assignment, i}
-          <div class="flex flex-col gap-4">
-            <div class="flex gap-4 items-center">
+          <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div class="flex gap-4 items-center mb-4">
               <select
                 bind:value={assignment.teacher}
-                class="border p-2 rounded"
+                class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               >
                 <option value="">Select Teacher</option>
                 {#each teachers as teacher}
@@ -627,7 +629,7 @@
               </select>
               <select
                 bind:value={assignment.subject}
-                class="border p-2 rounded"
+                class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               >
                 <option value="">Select Subject</option>
                 {#each subjects as subject}
@@ -636,89 +638,27 @@
               </select>
               <button
                 on:click={() => removeAssignment(i)}
-                class="text-red-500"
+                class="text-red-500 hover:text-red-700 transition-colors p-1.5 rounded-md hover:bg-red-50"
               >
                 Remove
               </button>
             </div>
-            <div class="flex gap-2 flex-wrap pl-4">
+            <div class="flex gap-3 flex-wrap">
               {#each Array(numClasses) as _, i}
-                <label class="flex items-center gap-2 border rounded p-2 cursor-pointer hover:bg-gray-50">
+                <div class="flex items-center gap-2 border rounded-md p-2.5 cursor-pointer hover:bg-white transition-all">
                   <input
                     type="checkbox"
+                    id="class_{assignment.teacher}_{i}"
                     checked={assignment.classes.includes(i + 1)}
                     on:change={() => toggleClass(assignment, i + 1)}
+                    class="rounded text-blue-600 focus:ring-blue-500"
                   />
-                  Class {i + 1}
-                </label>
-              {/each}
-            </div>
-          </div>
-        {/each}
-      </div>
-    </section>
-
-    <!-- Class-Subject-Periods Section -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Class Subjects and Periods</h2>
-      <button
-        on:click={addClassSubject}
-        class="bg-green-500 text-white px-4 py-2 rounded mb-4"
-      >
-        Add Class
-      </button>
-      <div class="space-y-6">
-        {#each classSubjects as classSubject, i}
-          <div class="border rounded-lg p-4">
-            <div class="flex gap-4 items-center mb-4">
-              <select
-                bind:value={classSubject.class}
-                class="border p-2 rounded"
-              >
-                {#each Array(numClasses) as _, i}
-                  <option value={i + 1}>Class {i + 1}</option>
-                {/each}
-              </select>
-              <button
-                on:click={() => removeClassSubject(i)}
-                class="text-red-500"
-              >
-                Remove Class
-              </button>
-            </div>
-            
-            <div class="pl-4 space-y-4">
-              <button
-                on:click={() => addSubjectToClass(classSubject)}
-                class="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-              >
-                Add Subject
-              </button>
-              
-              {#each classSubject.subjects as subjectData, subjectIndex}
-                <div class="flex gap-4 items-center">
-                  <select
-                    bind:value={subjectData.subject}
-                    class="border p-2 rounded"
+                  <label 
+                    for="class_{assignment.teacher}_{i}"
+                    class="text-gray-700 cursor-pointer"
                   >
-                    <option value="">Select Subject</option>
-                    {#each subjects as subject}
-                      <option value={subject}>{subject}</option>
-                    {/each}
-                  </select>
-                  <input
-                    type="number"
-                    bind:value={subjectData.periodsPerWeek}
-                    min="0"
-                    max="42"
-                    class="border p-2 rounded w-24"
-                  />
-                  <button
-                    on:click={() => removeSubjectFromClass(classSubject, subjectIndex)}
-                    class="text-red-500"
-                  >
-                    Remove
-                  </button>
+                    Class {i + 1}
+                  </label>
                 </div>
               {/each}
             </div>
@@ -727,71 +667,140 @@
       </div>
     </section>
 
-    <div class="flex gap-4">
+    <!-- Add this section after the Teacher Assignments section and before the Action Buttons -->
+    <section class="mb-8 bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Class Subjects and Periods</h2>
+      <button
+        on:click={addClassSubject}
+        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2.5 rounded-md hover:from-green-600 hover:to-green-700 transition-all shadow-sm mb-6"
+      >
+        Add Class
+      </button>
+      <div class="space-y-6">
+        {#each classSubjects as classSubject, i}
+          <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div class="flex justify-between items-center mb-4">
+              <div class="flex items-center gap-4">
+                <label for="class_{i}" class="font-medium text-gray-700">Class:</label>
+                <input
+                  id="class_{i}"
+                  type="number"
+                  bind:value={classSubject.class}
+                  min="1"
+                  max={numClasses}
+                  class="border border-gray-300 p-2 rounded-md w-24 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+              <button
+                on:click={() => removeClassSubject(i)}
+                class="text-red-500 hover:text-red-700 transition-colors p-1.5 rounded-md hover:bg-red-50"
+              >
+                Remove Class
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              {#each classSubject.subjects as subject, subjectIndex}
+                <div class="flex gap-4 items-center">
+                  <select
+                    bind:value={subject.subject}
+                    class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  >
+                    <option value="">Select Subject</option>
+                    {#each subjects as subjectOption}
+                      <option value={subjectOption}>{subjectOption}</option>
+                    {/each}
+                  </select>
+                  <input
+                    type="number"
+                    bind:value={subject.periodsPerWeek}
+                    min="0"
+                    placeholder="Periods per week"
+                    class="w-40 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                  <button
+                    on:click={() => removeSubjectFromClass(classSubject, subjectIndex)}
+                    class="text-red-500 hover:text-red-700 transition-colors p-1.5 rounded-md hover:bg-red-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+              {/each}
+              
+              <button
+                on:click={() => addSubjectToClass(classSubject)}
+                class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-md hover:from-blue-600 hover:to-blue-700 transition-all shadow-sm mt-2"
+              >
+                Add Subject
+              </button>
+            </div>
+          </div>
+        {/each}
+      </div>
+    </section>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-4 mb-8">
       <button
         on:click={saveConfiguration}
-        class="bg-purple-500 text-white px-4 py-2 rounded"
+        class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-3 rounded-md hover:from-purple-600 hover:to-purple-700 transition-all shadow-sm font-semibold"
       >
         Save Config
       </button>
       <button
         on:click={generateSchedule}
-        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold"
+        class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-md hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm font-semibold"
         disabled={isGenerating}
       >
         {isGenerating ? 'Generating...' : 'Generate Schedule'}
       </button>
     </div>
 
-    {#if errorMessage}
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-8">
-        {errorMessage}
-      </div>
-    {/if}
-
+    <!-- Schedule Tables -->
     {#if schedule.length > 0}
       <section class="mb-8">
-        <h2 class="text-xl font-semibold mb-4">Generated Schedule</h2>
-        
-        <!-- Create a table for each class -->
+        <h2 class="text-2xl font-semibold mb-6 text-gray-800">Generated Schedule</h2>
         {#each Array(numClasses) as _, classIndex}
-          <div class="mb-8">
-            <div class="flex justify-between items-center mb-2">
-              <h3 class="text-lg font-semibold">Class {classIndex + 1}</h3>
+          <div class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-xl font-semibold text-gray-800">Class {classIndex + 1}</h3>
               <button
                 on:click={() => downloadScheduleImage(classIndex)}
-                class="text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-colors border border-gray-300 hover:border-gray-400 bg-white shadow-sm"
-                aria-label="Download schedule for Class {classIndex + 1}"
+                class="text-gray-600 hover:text-gray-800 p-2.5 rounded-lg transition-colors border border-gray-300 hover:border-gray-400 bg-white shadow-sm flex items-center gap-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
                 </svg>
+                Download
               </button>
             </div>
             <div class="overflow-x-auto" id="schedule-table-{classIndex}">
               <table class="min-w-full border-collapse border border-gray-300 bg-white">
                 <thead>
                   <tr>
-                    <th class="border border-gray-300 p-2 bg-gray-100">Period/Day</th>
+                    <th class="border border-gray-300 p-3 bg-gray-50 text-gray-700">Period/Day</th>
                     {#each DAYS as day}
-                      <th class="border border-gray-300 p-2 bg-gray-100">{day}</th>
+                      <th class="border border-gray-300 p-3 bg-gray-50 text-gray-700">{day}</th>
                     {/each}
                   </tr>
                 </thead>
                 <tbody>
                   {#each Array(PERIODS_PER_DAY) as _, periodIndex}
                     <tr>
-                      <td class="border border-gray-300 p-2 font-medium bg-gray-50">
+                      <td class="border border-gray-300 p-3 font-medium bg-gray-50 text-gray-700">
                         Period {periodIndex + 1}
                       </td>
                       {#each DAYS as _, dayIndex}
-                        <td class="border border-gray-300 p-2 text-center">
+                        <td class="border border-gray-300 p-3 text-center">
                           {#if schedule[dayIndex][periodIndex][classIndex]}
-                            {schedule[dayIndex][periodIndex][classIndex].subject}
-                            <br>
-                            <span class="text-sm text-gray-600">({schedule[dayIndex][periodIndex][classIndex].teacher})</span>
+                            <div class="font-medium text-gray-800">
+                              {schedule[dayIndex][periodIndex][classIndex].subject}
+                            </div>
+                            <div class="text-sm text-gray-600">
+                              ({schedule[dayIndex][periodIndex][classIndex].teacher})
+                            </div>
                           {:else}
-                            -
+                            <span class="text-gray-400">-</span>
                           {/if}
                         </td>
                       {/each}
@@ -803,6 +812,12 @@
           </div>
         {/each}
       </section>
+    {/if}
+
+    {#if errorMessage}
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-8">
+        {errorMessage}
+      </div>
     {/if}
 
     {#if isGenerating}
@@ -822,5 +837,6 @@
   :global(body) {
     margin: 0;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #f3f4f6;
   }
 </style>

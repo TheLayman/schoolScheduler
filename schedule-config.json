@@ -1,0 +1,152 @@
+{
+  "numClasses": 2,
+  "subjectTeacherMappings": [
+    {
+      "class": 1,
+      "subject": "Maths",
+      "teacher": "Harika"
+    },
+    {
+      "class": 2,
+      "subject": "Maths",
+      "teacher": "Harika"
+    },
+    {
+      "class": 1,
+      "subject": "EVS",
+      "teacher": "Harika"
+    },
+    {
+      "class": 2,
+      "subject": "EVS",
+      "teacher": "Harika"
+    },
+    {
+      "class": 1,
+      "subject": "English",
+      "teacher": "newTeach"
+    },
+    {
+      "class": 2,
+      "subject": "English",
+      "teacher": "newTeach"
+    },
+    {
+      "class": 1,
+      "subject": "Telugu",
+      "teacher": "Telugu"
+    },
+    {
+      "class": 2,
+      "subject": "Telugu",
+      "teacher": "Telugu"
+    },
+    {
+      "class": 1,
+      "subject": "Hindi",
+      "teacher": "Hindi"
+    },
+    {
+      "class": 2,
+      "subject": "Hindi",
+      "teacher": "Hindi"
+    },
+    {
+      "class": 1,
+      "subject": "Art",
+      "teacher": "Art"
+    },
+    {
+      "class": 2,
+      "subject": "Art",
+      "teacher": "Art"
+    },
+    {
+      "class": 1,
+      "subject": "Comp",
+      "teacher": "Comp"
+    },
+    {
+      "class": 2,
+      "subject": "Comp",
+      "teacher": "Comp"
+    }
+  ],
+  "subjectPeriodMappings": [
+    {
+      "class": 1,
+      "subject": "English",
+      "periodsPerWeek": 8
+    },
+    {
+      "class": 1,
+      "subject": "Maths",
+      "periodsPerWeek": 8
+    },
+    {
+      "class": 1,
+      "subject": "Telugu",
+      "periodsPerWeek": 6
+    },
+    {
+      "class": 1,
+      "subject": "Hindi",
+      "periodsPerWeek": 6
+    },
+    {
+      "class": 1,
+      "subject": "EVS",
+      "periodsPerWeek": 6
+    },
+    {
+      "class": 1,
+      "subject": "Art",
+      "periodsPerWeek": 4
+    },
+    {
+      "class": 1,
+      "subject": "Comp",
+      "periodsPerWeek": 4
+    },
+    {
+      "class": 1,
+      "subject": "Social",
+      "periodsPerWeek": 0
+    },
+    {
+      "class": 2,
+      "subject": "English",
+      "periodsPerWeek": 8
+    },
+    {
+      "class": 2,
+      "subject": "Maths",
+      "periodsPerWeek": 8
+    },
+    {
+      "class": 2,
+      "subject": "Telugu",
+      "periodsPerWeek": 6
+    },
+    {
+      "class": 2,
+      "subject": "Hindi",
+      "periodsPerWeek": 6
+    },
+    {
+      "class": 2,
+      "subject": "EVS",
+      "periodsPerWeek": 6
+    },
+    {
+      "class": 2,
+      "subject": "Art",
+      "periodsPerWeek": 4
+    },
+    {
+      "class": 2,
+      "subject": "Comp",
+      "periodsPerWeek": 4
+    }
+  ]
+}
