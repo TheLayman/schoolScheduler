@@ -667,7 +667,7 @@
       </div>
     </section>
 
-    <!-- Add this section after the Teacher Assignments section and before the Action Buttons -->
+    <!-- Class Subjects and Periods Section -->
     <section class="mb-8 bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Class Subjects and Periods</h2>
       <button
