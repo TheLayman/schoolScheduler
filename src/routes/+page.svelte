@@ -509,78 +509,22 @@
     <div class="text-xl">Loading...</div>
   </div>
 {:else}
-  <main class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-2xl font-bold">School Schedule Generator</h1>
-      <label class="bg-purple-500 text-white px-4 py-2 rounded cursor-pointer">
-        Load Config
-        <input
-          type="file"
-          accept=".json"
-          on:change={handleConfigUpload}
-          class="hidden"
-        />
-      </label>
-    </div>
-
-    <!-- Number of Classes Input -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Configuration</h2>
-      <div class="flex gap-2 items-center">
-        <label for="numClasses" class="font-medium">Number of Classes:</label>
-        <input
-          id="numClasses"
-          type="number"
-          bind:value={numClasses}
-          min="1"
-          max="10"
-          class="border p-2 rounded w-24"
-        />
-      </div>
-    </section>
-
-    <!-- Subjects -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Subjects</h2>
-      <div class="flex gap-2 mb-4">
-        <input
-          type="text"
-          bind:value={newSubject}
-          placeholder="Enter subject name"
-          class="border p-2 rounded"
-        />
-        <button
-          on:click={addSubject}
-          class="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add Subject
-        </button>
-      </div>
-      <ul class="space-y-2">
-        {#each subjects as subject, i}
-          <li class="flex items-center gap-2">
-            <span>{subject}</span>
-            <button
-              on:click={() => removeSubject(i)}
-              class="text-red-500"
-            >
-              Remove
-            </button>
-          </li>
-        {/each}
-      </ul>
-    </section>
-
-    <!-- Teacher Input Section -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Teachers</h2>
-      <div class="flex gap-2 mb-4">
-        <input
-          type="text"
-          bind:value={newTeacher}
-          placeholder="Enter teacher name"
-          class="border p-2 rounded"
-        />
+  <main class="container mx-auto p-6 max-w-6xl">
+    <!-- Header section with improved styling -->
+    <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-md">
+      <h1 class="text-3xl font-bold text-gray-800">School Schedule Generator</h1>
+      <div class="flex items-center gap-6">
+        <div class="flex gap-3 items-center">
+          <label for="numClasses" class="font-medium text-gray-700">Classes:</label>
+          <input
+            id="numClasses"
+            type="number"
+            bind:value={numClasses}
+            min="1"
+            max="10"
+            class="border border-gray-300 p-2 rounded-md w-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+          />
+        </div>
         <button
           on:click={() => document.getElementById('configFile').click()}
           class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2.5 rounded-md hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm"
@@ -597,7 +541,7 @@
       </div>
     </div>
 
-    <!-- Subjects Section -->
+    <!-- Section styling template for all sections -->
     <section class="mb-8 bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Subjects</h2>
       <div class="flex gap-3 mb-6">
@@ -685,7 +629,7 @@
               </select>
               <select
                 bind:value={assignment.subject}
-                class="border p-2 rounded"
+                class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
               >
                 <option value="">Select Subject</option>
                 {#each subjects as subject}
@@ -709,73 +653,9 @@
                     on:change={() => toggleClass(assignment, i + 1)}
                     class="rounded text-blue-600 focus:ring-blue-500"
                   />
-                  Class {i + 1}
-                </label>
-              {/each}
-            </div>
-          </div>
-        {/each}
-      </div>
-    </section>
-
-    <!-- Class-Subject-Periods Section -->
-    <section class="mb-8">
-      <h2 class="text-xl font-semibold mb-4">Class Subjects and Periods</h2>
-      <button
-        on:click={addClassSubject}
-        class="bg-green-500 text-white px-4 py-2 rounded mb-4"
-      >
-        Add Class
-      </button>
-      <div class="space-y-6">
-        {#each classSubjects as classSubject, i}
-          <div class="border rounded-lg p-4">
-            <div class="flex gap-4 items-center mb-4">
-              <select
-                bind:value={classSubject.class}
-                class="border p-2 rounded"
-              >
-                {#each Array(numClasses) as _, i}
-                  <option value={i + 1}>Class {i + 1}</option>
-                {/each}
-              </select>
-              <button
-                on:click={() => removeClassSubject(i)}
-                class="text-red-500"
-              >
-                Remove Class
-              </button>
-            </div>
-            
-            <div class="pl-4 space-y-4">
-              <button
-                on:click={() => addSubjectToClass(classSubject)}
-                class="bg-blue-500 text-white px-3 py-1 rounded text-sm"
-              >
-                Add Subject
-              </button>
-              
-              {#each classSubject.subjects as subjectData, subjectIndex}
-                <div class="flex gap-4 items-center">
-                  <select
-                    bind:value={subjectData.subject}
-                    class="border p-2 rounded"
-                  >
-                    <option value="">Select Subject</option>
-                    {#each subjects as subject}
-                      <option value={subject}>{subject}</option>
-                    {/each}
-                  </select>
-                  <input
-                    type="number"
-                    bind:value={subjectData.periodsPerWeek}
-                    min="0"
-                    max="42"
-                    class="border p-2 rounded w-24"
-                  />
-                  <button
-                    on:click={() => removeSubjectFromClass(classSubject, subjectIndex)}
-                    class="text-red-500"
+                  <label 
+                    for="class_{assignment.teacher}_{i}"
+                    class="text-gray-700 cursor-pointer"
                   >
                     Class {i + 1}
                   </label>
