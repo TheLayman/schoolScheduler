@@ -77,8 +77,6 @@
     };
   });
 
-  let schedulerLogs: string[] = [];
-
   function addTeacher() {
     if (newTeacher.trim()) {
       teachers = [...teachers, newTeacher.trim()];
@@ -320,7 +318,6 @@
         break;
       case 'log':
         console.log(data); // Print to browser console
-        schedulerLogs = [...schedulerLogs, data];
         break;
     }
   }
@@ -456,7 +453,6 @@
       isGenerating = true;
       errorMessage = '';
       showErrorPopup = false;
-      schedulerLogs = []; // Clear previous logs
 
       const config = prepareScheduleConfig();
       
@@ -470,9 +466,6 @@
         errorMessage = error.message;
         isGenerating = false;
       };
-
-      // Add timestamp to first log
-      schedulerLogs = [`=== Schedule Generation Started at ${new Date().toLocaleTimeString()} ===`];
 
       worker.postMessage({
         ...config,
@@ -738,7 +731,7 @@
     {/if}
 
     {#if isGenerating}
-      <LoadingOverlay message={generationStatus} logs={schedulerLogs} />
+      <LoadingOverlay message={generationStatus} />
     {/if}
 
     {#if showErrorPopup}
