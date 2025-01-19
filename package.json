@@ -73,6 +73,7 @@
     "glob": "^11.0.1",
     "glob-parent": "^6.0.2",
     "hasown": "^2.0.2",
+    "html2canvas": "^1.4.1",
     "import-meta-resolve": "^4.1.0",
     "is-binary-path": "^3.0.0",
     "is-core-module": "^2.16.1",

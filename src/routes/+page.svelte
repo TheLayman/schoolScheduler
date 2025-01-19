@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
   import ErrorPopup from '$lib/components/ErrorPopup.svelte';
+  import html2canvas from 'html2canvas';
   
   // Define interfaces for our data structures
   interface Subject {
@@ -41,6 +42,14 @@
     model: () => any;
   }
 
+  interface ScheduleSlot {
+    teacher: string;
+    subject: string;
+  }
+
+  // Type for the schedule array
+  type ScheduleGrid = Array<Array<Array<ScheduleSlot | null>>>;
+
   let isLoading = false;
   let numClasses = 5;
   let isGenerating = false;
@@ -48,7 +57,7 @@
   let z3Module: any;
   let teachers: string[] = [];
   let newTeacher = '';
-  let schedule: Array<Array<Array<string>>> = [];
+  let schedule: ScheduleGrid = [];
   let teacherAssignments: TeacherAssignment[] = [];
   let classSubjects: ClassSubject[] = [];
 
@@ -58,7 +67,7 @@
   let generationStartTime: number = 0;
   let elapsedTime: string = '0:00';
   let generationStatus: string = '';
-  let timerInterval: NodeJS.Timer | null = null;
+  let timerInterval: number | null = null;
 
   let showErrorPopup = false;
   let popupMessage = '';
@@ -133,42 +142,8 @@
     teacherAssignments = teacherAssignments;
   }
 
-  interface ScheduleSlot {
-    teacher: string;
-    subject: string;
-  }
-
-  function isValidAssignment(
-    schedule: ScheduleSlot[][][],
-    day: number,
-    period: number,
-    classNum: number,
-    teacher: string,
-    subject: string
-  ): boolean {
-    for (let c = 0; c < numClasses; c++) {
-      if (c !== classNum && schedule[day][period][c]?.teacher === teacher) {
-        return false;
-      }
-    }
-
-    let teacherPeriodsInDay = 0;
-    for (let p = 0; p < PERIODS_PER_DAY; p++) {
-      for (let c = 0; c < numClasses; c++) {
-        if (schedule[day][p][c]?.teacher === teacher) {
-          teacherPeriodsInDay++;
-        }
-      }
-    }
-    if (teacherPeriodsInDay >= PERIODS_PER_DAY - 1) {
-      return false;
-    }
-
-    return true;
-  }
-
   function countSubjectPeriods(
-    schedule: ScheduleSlot[][][],
+    schedule: ScheduleGrid,
     classNum: number,
     subject: string
   ): number {
@@ -199,7 +174,7 @@
   }
 
   function solveSchedule(
-    schedule: ScheduleSlot[][][],
+    schedule: ScheduleGrid,
     day: number = 0,
     period: number = 0,
     classNum: number = 0
@@ -298,11 +273,14 @@
     
     switch (type) {
       case 'success':
-        schedule = data.map(day =>
-          day.map(period =>
-            period.map(slot => {
-              if (!slot) return '-';
-              return `${slot.subject} (${slot.teacher})`;
+        schedule = data.map((day: any[]) =>
+          day.map((period: any[]) =>
+            period.map((slot: any) => {
+              if (!slot) return null;
+              return {
+                teacher: slot.teacher,
+                subject: slot.subject
+              };
             })
           )
         );
@@ -478,6 +456,54 @@
       errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       isGenerating = false;
     }
+  }
+
+  async function downloadScheduleImage(classIndex: number) {
+    const tableElement = document.getElementById(`schedule-table-${classIndex}`);
+    if (!tableElement) return;
+
+    try {
+      const canvas = await html2canvas(tableElement, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Higher quality
+      });
+
+      const link = document.createElement('a');
+      link.download = `Class-${classIndex + 1}-Schedule.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error generating image:', error);
+    }
+  }
+
+  function isValidAssignment(
+    schedule: ScheduleGrid,
+    day: number,
+    period: number,
+    classNum: number,
+    teacher: string,
+    subject: string
+  ): boolean {
+    for (let c = 0; c < numClasses; c++) {
+      if (c !== classNum && schedule[day][period][c]?.teacher === teacher) {
+        return false;
+      }
+    }
+
+    let teacherPeriodsInDay = 0;
+    for (let p = 0; p < PERIODS_PER_DAY; p++) {
+      for (let c = 0; c < numClasses; c++) {
+        if (schedule[day][p][c]?.teacher === teacher) {
+          teacherPeriodsInDay++;
+        }
+      }
+    }
+    if (teacherPeriodsInDay >= PERIODS_PER_DAY - 1) {
+      return false;
+    }
+
+    return true;
   }
 </script>
 
@@ -698,9 +724,20 @@
         <!-- Create a table for each class -->
         {#each Array(numClasses) as _, classIndex}
           <div class="mb-8">
-            <h3 class="text-lg font-semibold mb-2">Class {classIndex + 1}</h3>
-            <div class="overflow-x-auto">
-              <table class="min-w-full border-collapse border border-gray-300">
+            <div class="flex justify-between items-center mb-2">
+              <h3 class="text-lg font-semibold">Class {classIndex + 1}</h3>
+              <button
+                on:click={() => downloadScheduleImage(classIndex)}
+                class="text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-colors border border-gray-300 hover:border-gray-400 bg-white shadow-sm"
+                aria-label="Download schedule for Class {classIndex + 1}"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+            <div class="overflow-x-auto" id="schedule-table-{classIndex}">
+              <table class="min-w-full border-collapse border border-gray-300 bg-white">
                 <thead>
                   <tr>
                     <th class="border border-gray-300 p-2 bg-gray-100">Period/Day</th>
@@ -717,7 +754,13 @@
                       </td>
                       {#each DAYS as _, dayIndex}
                         <td class="border border-gray-300 p-2 text-center">
-                          {schedule[dayIndex][periodIndex][classIndex] || '-'}
+                          {#if schedule[dayIndex][periodIndex][classIndex]}
+                            {schedule[dayIndex][periodIndex][classIndex].subject}
+                            <br>
+                            <span class="text-sm text-gray-600">({schedule[dayIndex][periodIndex][classIndex].teacher})</span>
+                          {:else}
+                            -
+                          {/if}
                         </td>
                       {/each}
                     </tr>
