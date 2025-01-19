@@ -519,12 +519,6 @@
     <section class="mb-8">
       <h2 class="text-xl font-semibold mb-4">Configuration Management</h2>
       <div class="flex gap-4">
-        <button
-          on:click={saveConfiguration}
-          class="bg-purple-500 text-white px-4 py-2 rounded"
-        >
-          Save Configuration
-        </button>
         <label class="bg-purple-500 text-white px-4 py-2 rounded cursor-pointer">
           Load Configuration
           <input
@@ -703,13 +697,21 @@
       </div>
     </section>
 
-    <button
-      on:click={generateSchedule}
-      class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold mb-8"
-      disabled={isGenerating}
-    >
-      {isGenerating ? 'Generating...' : 'Generate Schedule'}
-    </button>
+    <div class="flex gap-4">
+      <button
+        on:click={saveConfiguration}
+        class="bg-purple-500 text-white px-4 py-2 rounded"
+      >
+        Save Configuration
+      </button>
+      <button
+        on:click={generateSchedule}
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold"
+        disabled={isGenerating}
+      >
+        {isGenerating ? 'Generating...' : 'Generate Schedule'}
+      </button>
+    </div>
 
     {#if errorMessage}
       <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-8">
