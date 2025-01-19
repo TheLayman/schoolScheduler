@@ -541,7 +541,7 @@
       </div>
     </div>
 
-    <!-- Section styling template for all sections -->
+    <!-- Subjects Section -->
     <section class="mb-8 bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Subjects</h2>
       <div class="flex gap-3 mb-6">
@@ -573,7 +573,7 @@
       </ul>
     </section>
 
-    <!-- Apply similar styling to other sections -->
+    <!-- Teachers Section -->
     <section class="mb-8 bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Teachers</h2>
       <div class="flex gap-3 mb-6">
