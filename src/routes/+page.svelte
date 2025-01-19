@@ -38,6 +38,8 @@
   let schedule: ScheduleGrid = [];
   let teacherAssignments: TeacherAssignment[] = [];
   let classSubjects: ClassSubject[] = [];
+  let subjects: string[] = [];
+  let newSubject = '';
 
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const PERIODS_PER_DAY = 7;
@@ -319,7 +321,7 @@
             subjectPeriodMappings.push({
               class: cs.class,
               subject: subject.subject,
-              periodsPerWeek: subject.periodsPerWeek || 1
+              periodsPerWeek: subject.periodsPerWeek || 0
             });
           }
         });
@@ -337,6 +339,13 @@
     numClasses = config.numClasses || 1;
     teacherAssignments = [];
     classSubjects = [];
+
+    // Extract unique subjects from the configuration
+    const uniqueSubjects = new Set([
+        ...config.subjectTeacherMappings.map(m => m.subject),
+        ...config.subjectPeriodMappings.map(m => m.subject)
+    ]);
+    subjects = Array.from(uniqueSubjects);
 
     const uniqueTeachers = new Set(config.subjectTeacherMappings.map(m => m.teacher));
     teachers = Array.from(uniqueTeachers);
@@ -401,6 +410,17 @@
       };
       reader.readAsText(file);
     }
+  }
+
+  function addSubject() {
+    if (newSubject.trim() && !subjects.includes(newSubject.trim())) {
+      subjects = [...subjects, newSubject.trim()];
+      newSubject = '';
+    }
+  }
+
+  function removeSubject(index: number) {
+    subjects = subjects.filter((_, i) => i !== index);
   }
 
   async function generateSchedule() {
@@ -519,6 +539,38 @@
       </div>
     </section>
 
+    <!-- Subjects -->
+    <section class="mb-8">
+      <h2 class="text-xl font-semibold mb-4">Subjects</h2>
+      <div class="flex gap-2 mb-4">
+        <input
+          type="text"
+          bind:value={newSubject}
+          placeholder="Enter subject name"
+          class="border p-2 rounded"
+        />
+        <button
+          on:click={addSubject}
+          class="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Add Subject
+        </button>
+      </div>
+      <ul class="space-y-2">
+        {#each subjects as subject, i}
+          <li class="flex items-center gap-2">
+            <span>{subject}</span>
+            <button
+              on:click={() => removeSubject(i)}
+              class="text-red-500"
+            >
+              Remove
+            </button>
+          </li>
+        {/each}
+      </ul>
+    </section>
+
     <!-- Teacher Input Section -->
     <section class="mb-8">
       <h2 class="text-xl font-semibold mb-4">Teachers</h2>
@@ -573,12 +625,15 @@
                   <option value={teacher}>{teacher}</option>
                 {/each}
               </select>
-              <input
-                type="text"
+              <select
                 bind:value={assignment.subject}
-                placeholder="Subject"
                 class="border p-2 rounded"
-              />
+              >
+                <option value="">Select Subject</option>
+                {#each subjects as subject}
+                  <option value={subject}>{subject}</option>
+                {/each}
+              </select>
               <button
                 on:click={() => removeAssignment(i)}
                 class="text-red-500"
@@ -642,16 +697,19 @@
               
               {#each classSubject.subjects as subjectData, subjectIndex}
                 <div class="flex gap-4 items-center">
-                  <input
-                    type="text"
+                  <select
                     bind:value={subjectData.subject}
-                    placeholder="Subject Name"
                     class="border p-2 rounded"
-                  />
+                  >
+                    <option value="">Select Subject</option>
+                    {#each subjects as subject}
+                      <option value={subject}>{subject}</option>
+                    {/each}
+                  </select>
                   <input
                     type="number"
                     bind:value={subjectData.periodsPerWeek}
-                    min="1"
+                    min="0"
                     max="42"
                     class="border p-2 rounded w-24"
                   />
