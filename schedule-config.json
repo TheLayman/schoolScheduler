@@ -100,11 +100,6 @@
     },
     {
       "class": 1,
-      "subject": "Art",
-      "periodsPerWeek": 4
-    },
-    {
-      "class": 1,
       "subject": "Comp",
       "periodsPerWeek": 4
     },
@@ -140,13 +135,23 @@
     },
     {
       "class": 2,
-      "subject": "Art",
-      "periodsPerWeek": 4
-    },
-    {
-      "class": 2,
       "subject": "Comp",
       "periodsPerWeek": 4
+    }
+  ],
+  "groupClasses": [
+    {
+      "subject": "Art",
+      "classes": [
+        1,
+        2
+      ],
+      "periodsPerWeek": 5,
+      "selectedSlots": [
+        2,
+        5
+      ],
+      "teacher": "Art"
     }
   ]
 }
