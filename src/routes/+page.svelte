@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import LoadingOverlay from '$lib/components/LoadingOverlay.svelte';
   import ErrorPopup from '$lib/components/ErrorPopup.svelte';
   import html2canvas from 'html2canvas';
   
@@ -42,9 +40,7 @@
   // Type for the schedule array
   type ScheduleGrid = Array<Array<Array<ScheduleSlot | null>>>;
 
-  let isLoading = false;
   let numClasses = 5;
-  let isGenerating = false;
   let errorMessage = '';
   let teachers: string[] = [];
   let newTeacher = '';
@@ -331,41 +327,9 @@
     }
   }
 
-  function isValidAssignment(
-    schedule: ScheduleGrid,
-    day: number,
-    period: number,
-    classNum: number,
-    teacher: string,
-    subject: string
-  ): boolean {
-    for (let c = 0; c < numClasses; c++) {
-      if (c !== classNum && schedule[day][period][c]?.teacher === teacher) {
-        return false;
-      }
-    }
-
-    let teacherPeriodsInDay = 0;
-    for (let p = 0; p < PERIODS_PER_DAY; p++) {
-      for (let c = 0; c < numClasses; c++) {
-        if (schedule[day][p][c]?.teacher === teacher) {
-          teacherPeriodsInDay++;
-        }
-      }
-    }
-    if (teacherPeriodsInDay >= PERIODS_PER_DAY - 1) {
-      return false;
-    }
-
-    return true;
-  }
 </script>
 
-{#if isLoading}
-  <div class="flex items-center justify-center min-h-screen">
-    <div class="text-xl">Loading...</div>
-  </div>
-{:else}
+
   <main class="container mx-auto p-6 max-w-6xl">
     <!-- Header section -->
     <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-md">
@@ -664,9 +628,14 @@
             </div>
             <!-- Teacher display (autopopulated) -->
             <div class="mb-4">
-              <label class="font-medium text-gray-700">Teacher:</label>
-              <input type="text" value={getGroupTeacher(group)} readonly
-                     class="border border-gray-300 p-2.5 rounded-md bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+              <label for="teacher-{i}" class="font-medium text-gray-700">Teacher:</label>
+              <input 
+                id="teacher-{i}"
+                type="text" 
+                value={getGroupTeacher(group)} 
+                readonly
+                class="border border-gray-300 p-2.5 rounded-md bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
+              />
             </div>
             <!-- Selected Slots -->
             <div>
@@ -757,10 +726,6 @@
       </div>
     {/if}
 
-    {#if isGenerating}
-      <LoadingOverlay message={generationStatus} />
-    {/if}
-
     {#if showErrorPopup}
       <ErrorPopup 
         message={popupMessage} 
@@ -768,7 +733,6 @@
       />
     {/if}
   </main>
-{/if}
 
 <style>
   :global(body) {
