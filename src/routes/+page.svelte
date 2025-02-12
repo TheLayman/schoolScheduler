@@ -21,6 +21,19 @@
     subject: string;
   }
 
+  // Updated GroupClass interface: teacher is removed here (it will be added in the config output if valid)
+  interface GroupClass {
+    subject: string;
+    periodsPerWeek: number;
+    selectedSlots: number[];
+    classes: number[];
+  }
+
+  // For output, we define an interface that includes teacher.
+  interface GroupClassConfig extends GroupClass {
+    teacher: string;
+  }
+
   interface ScheduleSlot {
     teacher: string;
     subject: string;
@@ -41,29 +54,17 @@
   let subjects: string[] = [];
   let newSubject = '';
 
+  // Group classes variable (no teacher field here)
+  let groupClasses: GroupClass[] = [];
+  
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const PERIODS_PER_DAY = 7;
 
-  let generationStartTime: number = 0;
-  let elapsedTime: string = '0:00';
   let generationStatus: string = '';
 
   let showErrorPopup = false;
   let popupMessage = '';
 
-  // Lazy load the worker
-  let worker: Worker;
-  onMount(() => {
-    if (!worker) {
-      worker = new Worker(new URL('$lib/scheduleWorker.ts', import.meta.url), { type: 'module' });
-    }
-    
-    return () => {
-      if (worker) {
-        worker.terminate();
-      }
-    };
-  });
 
   function addTeacher() {
     if (newTeacher.trim()) {
@@ -112,127 +113,22 @@
     classSubjects = classSubjects;
   }
 
-  function toggleClass(assignment: TeacherAssignment, classNum: number) {
-    if (assignment.classes.includes(classNum)) {
-      assignment.classes = assignment.classes.filter(c => c !== classNum);
-    } else {
-      assignment.classes = [...assignment.classes, classNum];
-    }
-    teacherAssignments = teacherAssignments;
-  }
-
-  function countSubjectPeriods(
-    schedule: ScheduleGrid,
-    classNum: number,
-    subject: string
-  ): number {
-    let count = 0;
-    for (let day = 0; day < DAYS.length; day++) {
-      for (let period = 0; period < PERIODS_PER_DAY; period++) {
-        if (schedule[day][period][classNum]?.subject === subject) {
-          count++;
-        }
+  // Given a subject and a list of classes, check teacher assignments and return the teacher if consistent
+  function getGroupTeacher(group: GroupClass): string {
+    if (!group.subject) return "";
+    if (group.classes.length === 0) return "";
+    let teacher: string | null = null;
+    for (const classNum of group.classes) {
+      // Look for a teacher assignment for this subject in that class
+      const assign = teacherAssignments.find(a => a.subject === group.subject && a.classes.includes(classNum));
+      if (!assign) return "";
+      if (teacher === null) {
+        teacher = assign.teacher;
+      } else if (teacher !== assign.teacher) {
+        return "Inconsistent";
       }
     }
-    return count;
-  }
-
-  function findTeacherForSubject(subject: string, classNum: number): string | null {
-    const assignment = teacherAssignments.find(a => 
-      a.subject === subject && 
-      a.classes.includes(classNum + 1)
-    );
-    return assignment?.teacher || null;
-  }
-
-  function updateTimer() {
-    const elapsed = Math.floor((Date.now() - generationStartTime) / 1000);
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = elapsed % 60;
-    elapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  }
-
-  function solveSchedule(
-    schedule: ScheduleGrid,
-    day: number = 0,
-    period: number = 0,
-    classNum: number = 0
-  ): boolean {
-    generationStatus = `Trying: Class ${classNum + 1}, Day ${DAYS[day] || ''}, Period ${period + 1}`;
-    
-    if (day >= DAYS.length) {
-      for (const classSubject of classSubjects) {
-        for (const subject of classSubject.subjects) {
-          const actualPeriods = countSubjectPeriods(schedule, classSubject.class - 1, subject.subject);
-          if (actualPeriods !== subject.periodsPerWeek) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-
-    let nextClass = (classNum + 1) % numClasses;
-    let nextPeriod = nextClass === 0 ? period + 1 : period;
-    let nextDay = nextPeriod >= PERIODS_PER_DAY ? day + 1 : day;
-    nextPeriod = nextPeriod % PERIODS_PER_DAY;
-
-    const classConfig = classSubjects.find(cs => cs.class === classNum + 1);
-    if (!classConfig) {
-      return solveSchedule(schedule, nextDay, nextPeriod, nextClass);
-    }
-
-    for (const subject of classConfig.subjects) {
-      const currentCount = countSubjectPeriods(schedule, classNum, subject.subject);
-      if (currentCount >= subject.periodsPerWeek) {
-        continue;
-      }
-
-      const remainingSlots = (DAYS.length * PERIODS_PER_DAY) - 
-        (day * PERIODS_PER_DAY + period + 1);
-      const remainingRequired = subject.periodsPerWeek - currentCount;
-      
-      if (remainingRequired > remainingSlots) {
-        continue;
-      }
-
-      const teacher = findTeacherForSubject(subject.subject, classNum);
-      if (!teacher) {
-        continue;
-      }
-
-      if (isValidAssignment(schedule, day, period, classNum, teacher, subject.subject)) {
-        schedule[day][period][classNum] = { teacher, subject: subject.subject };
-        
-        if (solveSchedule(schedule, nextDay, nextPeriod, nextClass)) {
-          return true;
-        }
-        
-        schedule[day][period][classNum] = null;
-      }
-    }
-
-    let canLeaveEmpty = true;
-    for (const subject of classConfig.subjects) {
-      const currentCount = countSubjectPeriods(schedule, classNum, subject.subject);
-      const remainingSlots = (DAYS.length * PERIODS_PER_DAY) - 
-        (day * PERIODS_PER_DAY + period + 1);
-      const remainingRequired = subject.periodsPerWeek - currentCount;
-      
-      if (remainingRequired > remainingSlots) {
-        canLeaveEmpty = false;
-        break;
-      }
-    }
-
-    if (canLeaveEmpty) {
-      schedule[day][period][classNum] = null;
-      if (solveSchedule(schedule, nextDay, nextPeriod, nextClass)) {
-        return true;
-      }
-    }
-
-    return false;
+    return teacher || "";
   }
 
   function closePopup() {
@@ -240,46 +136,6 @@
     popupMessage = '';
   }
 
-  // Add type definitions for worker messages
-  interface WorkerMessage {
-    type: 'success' | 'error' | 'status' | 'log';
-    data: any;
-  }
-
-  // Update handleWorkerMessage
-  function handleWorkerMessage(event: MessageEvent<WorkerMessage>) {
-    const { type, data } = event.data;
-    
-    switch (type) {
-      case 'success':
-        schedule = data.map((day: any[]) =>
-          day.map((period: any[]) =>
-            period.map((slot: any) => {
-              if (!slot) return null;
-              return {
-                teacher: slot.teacher,
-                subject: slot.subject
-              };
-            })
-          )
-        );
-        isGenerating = false;
-        break;
-      case 'error':
-        console.error('Schedule Generation Error:', data);
-        errorMessage = data;
-        isGenerating = false;
-        break;
-      case 'status':
-        generationStatus = data;
-        break;
-      case 'log':
-        console.log(data); // Print to browser console
-        break;
-    }
-  }
-
-  // New interfaces
   interface SubjectTeacherMapping {
     class: number;
     subject: string;
@@ -292,10 +148,12 @@
     periodsPerWeek: number;
   }
 
+  // Update the ScheduleConfig interface to include groupClasses with teacher in the output
   interface ScheduleConfig {
     numClasses: number;
     subjectTeacherMappings: SubjectTeacherMapping[];
     subjectPeriodMappings: SubjectPeriodMapping[];
+    groupClasses?: GroupClassConfig[];
   }
 
   function prepareScheduleConfig(): ScheduleConfig {
@@ -328,10 +186,20 @@
       }
     });
 
+    // Process group classes: only add groups where a consistent teacher is determined.
+    const validGroupClasses: GroupClassConfig[] = [];
+    groupClasses.forEach(group => {
+      const teacher = getGroupTeacher(group);
+      if (teacher && teacher !== "Inconsistent") {
+        validGroupClasses.push({ ...group, teacher });
+      }
+    });
+
     return {
       numClasses,
       subjectTeacherMappings,
-      subjectPeriodMappings
+      subjectPeriodMappings,
+      groupClasses: validGroupClasses
     };
   }
 
@@ -339,8 +207,14 @@
     numClasses = config.numClasses || 1;
     teacherAssignments = [];
     classSubjects = [];
+    // When loading, we ignore the teacher field in groupClasses because it is auto‐computed.
+    groupClasses = config.groupClasses ? config.groupClasses.map(g => ({
+      subject: g.subject,
+      periodsPerWeek: g.periodsPerWeek,
+      selectedSlots: g.selectedSlots,
+      classes: g.classes
+    })) : [];
 
-    // Extract unique subjects from the configuration
     const uniqueSubjects = new Set([
         ...config.subjectTeacherMappings.map(m => m.subject),
         ...config.subjectPeriodMappings.map(m => m.subject)
@@ -423,36 +297,19 @@
     subjects = subjects.filter((_, i) => i !== index);
   }
 
-  async function generateSchedule() {
-    try {
-      isGenerating = true;
-      errorMessage = '';
-      showErrorPopup = false;
+  // Functions for Group Classes
 
-      const config = prepareScheduleConfig();
-      
-      if (!worker) {
-        worker = new Worker(new URL('$lib/scheduleWorker.ts', import.meta.url), { type: 'module' });
-      }
+  function addGroupClass() {
+    groupClasses = [...groupClasses, { subject: '', periodsPerWeek: 0, selectedSlots: [], classes: [] }];
+  }
 
-      worker.onmessage = handleWorkerMessage;
-      worker.onerror = (error) => {
-        console.error('Worker Error:', error);
-        errorMessage = error.message;
-        isGenerating = false;
-      };
+  function removeGroupClass(index: number) {
+    groupClasses = groupClasses.filter((_, i) => i !== index);
+  }
 
-      worker.postMessage({
-        ...config,
-        DAYS,
-        PERIODS_PER_DAY
-      });
-
-    } catch (error) {
-      console.error('Error:', error);
-      errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      isGenerating = false;
-    }
+  // Helper function to parse comma-separated numbers into an array of numbers
+  function parseNumberList(value: string): number[] {
+    return value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
   }
 
   async function downloadScheduleImage(classIndex: number) {
@@ -510,7 +367,7 @@
   </div>
 {:else}
   <main class="container mx-auto p-6 max-w-6xl">
-    <!-- Header section with improved styling -->
+    <!-- Header section -->
     <div class="flex justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-md">
       <h1 class="text-3xl font-bold text-gray-800">School Schedule Generator</h1>
       <div class="flex items-center gap-6">
@@ -526,7 +383,7 @@
           />
         </div>
         <button
-          on:click={() => document.getElementById('configFile').click()}
+          on:click={() => document.getElementById('configFile')?.click()}
           class="bg-gradient-to-r from-purple-600 to-purple-700 text-white px-6 py-2.5 rounded-md hover:from-purple-700 hover:to-purple-800 transition-all shadow-sm"
         >
           Load Config
@@ -541,7 +398,7 @@
       </div>
     </div>
 
-    <!-- Section styling template for all sections -->
+    <!-- Subjects Section -->
     <section class="mb-8 bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Subjects</h2>
       <div class="flex gap-3 mb-6">
@@ -650,7 +507,14 @@
                     type="checkbox"
                     id="class_{assignment.teacher}_{i}"
                     checked={assignment.classes.includes(i + 1)}
-                    on:change={() => toggleClass(assignment, i + 1)}
+                    on:change={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      if(target.checked) {
+                        assignment.classes = [...assignment.classes, i + 1];
+                      } else {
+                        assignment.classes = assignment.classes.filter(c => c !== (i + 1));
+                      }
+                    }}
                     class="rounded text-blue-600 focus:ring-blue-500"
                   />
                   <label 
@@ -739,6 +603,86 @@
       </div>
     </section>
 
+    <!-- Group Classes Section -->
+    <section class="mb-8 bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">Group Classes</h2>
+      <button
+        on:click={addGroupClass}
+        class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2.5 rounded-md hover:from-green-600 hover:to-green-700 transition-all shadow-sm mb-6"
+      >
+        Add Group Class
+      </button>
+      <div class="space-y-6">
+        {#each groupClasses as group, i}
+          <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div class="flex gap-4 items-center mb-4">
+              <!-- Subject Dropdown -->
+              <select
+                bind:value={group.subject}
+                class="flex-1 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              >
+                <option value="">Select Subject</option>
+                {#each subjects as subj}
+                  <option value={subj}>{subj}</option>
+                {/each}
+              </select>
+              <!-- Periods per week input -->
+              <input
+                type="number"
+                bind:value={group.periodsPerWeek}
+                min="0"
+                placeholder="Periods per week"
+                class="w-40 border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              />
+              <button
+                on:click={() => removeGroupClass(i)}
+                class="text-red-500 hover:text-red-700 transition-colors p-1.5 rounded-md hover:bg-red-50"
+              >
+                Remove
+              </button>
+            </div>
+            <!-- Classes Selection -->
+            <div class="flex gap-2 flex-wrap items-center mb-4">
+              <span class="font-medium text-gray-700">Classes:</span>
+              {#each Array(numClasses) as _, j}
+                <label class="inline-flex items-center">
+                  <input type="checkbox"
+                         class="form-checkbox"
+                         checked={group.classes.includes(j + 1)}
+                         on:change={(e) => {
+                           const target = e.target as HTMLInputElement;
+                           if(target.checked) {
+                             group.classes = [...group.classes, j + 1];
+                           } else {
+                             group.classes = group.classes.filter(c => c !== (j + 1));
+                           }
+                         }}
+                  />
+                  <span class="ml-2">Class {j + 1}</span>
+                </label>
+              {/each}
+            </div>
+            <!-- Teacher display (autopopulated) -->
+            <div class="mb-4">
+              <label class="font-medium text-gray-700">Teacher:</label>
+              <input type="text" value={getGroupTeacher(group)} readonly
+                     class="border border-gray-300 p-2.5 rounded-md bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+            </div>
+            <!-- Selected Slots -->
+            <div>
+              <input
+                type="text"
+                value={group.selectedSlots.join(',')}
+                on:change={(e) => group.selectedSlots = parseNumberList((e.target as HTMLInputElement).value).filter(n => !isNaN(n))}
+                placeholder="Selected Slots (comma-separated)"
+                class="w-full border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+        {/each}
+      </div>
+    </section>
+
     <!-- Action Buttons -->
     <div class="flex gap-4 mb-8">
       <button
@@ -747,16 +691,9 @@
       >
         Save Config
       </button>
-      <button
-        on:click={generateSchedule}
-        class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3 rounded-md hover:from-blue-700 hover:to-blue-800 transition-all shadow-sm font-semibold"
-        disabled={isGenerating}
-      >
-        {isGenerating ? 'Generating...' : 'Generate Schedule'}
-      </button>
     </div>
 
-    <!-- Schedule Tables -->
+    <!-- Schedule Tables (if any generated schedule exists) -->
     {#if schedule.length > 0}
       <section class="mb-8">
         <h2 class="text-2xl font-semibold mb-6 text-gray-800">Generated Schedule</h2>

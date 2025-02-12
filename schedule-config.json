@@ -70,6 +70,16 @@
       "class": 2,
       "subject": "Comp",
       "teacher": "Comp"
+    },
+    {
+      "class": 1,
+      "subject": "Social",
+      "teacher": "Comp"
+    },
+    {
+      "class": 2,
+      "subject": "Social",
+      "teacher": "Comp"
     }
   ],
   "subjectPeriodMappings": [
@@ -100,18 +110,8 @@
     },
     {
       "class": 1,
-      "subject": "Art",
-      "periodsPerWeek": 4
-    },
-    {
-      "class": 1,
       "subject": "Comp",
       "periodsPerWeek": 4
-    },
-    {
-      "class": 1,
-      "subject": "Social",
-      "periodsPerWeek": 0
     },
     {
       "class": 2,
@@ -140,13 +140,35 @@
     },
     {
       "class": 2,
-      "subject": "Art",
-      "periodsPerWeek": 4
-    },
-    {
-      "class": 2,
       "subject": "Comp",
       "periodsPerWeek": 4
+    }
+  ],
+  "groupClasses": [
+    {
+      "subject": "Art",
+      "periodsPerWeek": 1,
+      "selectedSlots": [
+        2,
+        5
+      ],
+      "classes": [
+        1,
+        2
+      ],
+      "teacher": "Art"
+    },
+    {
+      "subject": "Social",
+      "periodsPerWeek": 1,
+      "selectedSlots": [
+        1
+      ],
+      "classes": [
+        1,
+        2
+      ],
+      "teacher": "Comp"
     }
   ]
 }
