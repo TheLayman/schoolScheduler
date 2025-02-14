@@ -128,13 +128,3 @@ def generate_schedule_from_config(config):
                     schedule_grid[day_index][period_index][class_id - 1] = {"subject": subject, "teacher": teacher}
     
     return schedule_grid
-
-if __name__ == '__main__':
-    config_file = 'schedule-config.json'
-    with open(config_file, 'r') as f:
-        config = json.load(f)
-    schedule_grid = generate_schedule_from_config(config)
-    if schedule_grid is None:
-        print("No solution found!")
-    else:
-        print(json.dumps(schedule_grid, indent=2))
