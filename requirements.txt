@@ -1,2 +1,1 @@
-matplotlib==3.10.0
-ortools==9.11.4210
+PuLP==2.9.0
