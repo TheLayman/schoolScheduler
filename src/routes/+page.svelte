@@ -350,6 +350,23 @@
       console.error('Error generating image:', error);
     }
   }
+
+  // Helper function to build teacher schedule cell data.
+  // It returns an array of strings, where each string is "Class X: Subject"
+  function getTeacherScheduleCell(teacher: string, dayIndex: number, periodIndex: number): string[] {
+    const assignments: string[] = [];
+    if (!schedule || schedule.length === 0) return assignments;
+    const daySchedule = schedule[dayIndex];
+    if (!daySchedule) return assignments;
+    const periodSchedule = daySchedule[periodIndex];
+    if (!periodSchedule) return assignments;
+    periodSchedule.forEach((slot, classIndex) => {
+      if (slot && slot.teacher === teacher) {
+        assignments.push(`Class ${classIndex + 1}: ${slot.subject}`);
+      }
+    });
+    return assignments;
+  }
 </script>
 
 <main class="container mx-auto p-6 max-w-6xl">
@@ -693,8 +710,9 @@
 
   <!-- Schedule Tables (if any generated schedule exists) -->
   {#if schedule.length > 0}
+    <!-- Class-wise Schedule Section -->
     <section class="mb-8">
-      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Generated Schedule</h2>
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Class Schedules</h2>
       {#each Array(numClasses) as _, classIndex}
         <div class="mb-8 bg-white rounded-lg shadow-md p-6">
           <div class="flex justify-between items-center mb-4">
@@ -734,6 +752,50 @@
                           <div class="text-sm text-gray-600">
                             ({schedule[dayIndex][periodIndex][classIndex].teacher})
                           </div>
+                        {:else}
+                          <span class="text-gray-400">-</span>
+                        {/if}
+                      </td>
+                    {/each}
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {/each}
+    </section>
+
+    <!-- Teacher-wise Schedule Section -->
+    <section class="mb-8">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Teacher Schedules</h2>
+      {#each teachers as teacher}
+        <div class="mb-8 bg-white rounded-lg shadow-md p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Teacher: {teacher}</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full border-collapse border border-gray-300 bg-white">
+              <thead>
+                <tr>
+                  <th class="border border-gray-300 p-3 bg-gray-50 text-gray-700">Period</th>
+                  {#each DAYS as day}
+                    <th class="border border-gray-300 p-3 bg-gray-50 text-gray-700">{day}</th>
+                  {/each}
+                </tr>
+              </thead>
+              <tbody>
+                {#each Array(PERIODS_PER_DAY) as _, periodIndex}
+                  <tr>
+                    <td class="border border-gray-300 p-3 font-medium bg-gray-50 text-gray-700">
+                      Period {periodIndex + 1}
+                    </td>
+                    {#each DAYS as _, dayIndex}
+                      <td class="border border-gray-300 p-3 text-center">
+                        {#if getTeacherScheduleCell(teacher, dayIndex, periodIndex).length > 0}
+                          {#each getTeacherScheduleCell(teacher, dayIndex, periodIndex) as assignment}
+                            <div class="text-gray-800">{assignment}</div>
+                          {/each}
                         {:else}
                           <span class="text-gray-400">-</span>
                         {/if}
