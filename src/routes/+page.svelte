@@ -362,10 +362,29 @@
     if (!periodSchedule) return assignments;
     periodSchedule.forEach((slot, classIndex) => {
       if (slot && slot.teacher === teacher) {
-        assignments.push(`Class ${classIndex + 1}: ${slot.subject}`);
+        assignments.push(`Grade ${classIndex + 1}: ${slot.subject}`);
       }
     });
     return assignments;
+  }
+
+  async function downloadTeacherSchedule(teacher: string) {
+    const tableElement = document.getElementById(`teacher-schedule-${teacher}`);
+    if (!tableElement) return;
+
+    try {
+      const canvas = await html2canvas(tableElement, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+      });
+
+      const link = document.createElement('a');
+      link.download = `${teacher}-Schedule.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error generating teacher schedule image:', error);
+    }
   }
 </script>
 
@@ -773,8 +792,13 @@
         <div class="mb-8 bg-white rounded-lg shadow-md p-6">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-semibold text-gray-800">Teacher: {teacher}</h3>
+             <button
+              on:click={() => downloadTeacherSchedule(teacher)}
+              class="text-gray-600 hover:text-gray-800 p-2.5 rounded-lg transition-colors border border-gray-300 hover:border-gray-400 bg-white shadow-sm flex items-center gap-2"
+              aria-label="Download teacher schedule"
+            >
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto" id={`teacher-schedule-${teacher}`}>
             <table class="min-w-full border-collapse border border-gray-300 bg-white">
               <thead>
                 <tr>
