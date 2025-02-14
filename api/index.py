@@ -9,24 +9,21 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
     
     def do_POST(self):
-        if self.path == '/index':
-            content_length = int(self.headers.get('Content-Length', 0))
-            post_data = self.rfile.read(content_length)
-            try:
-                config = json.loads(post_data)
-                schedule = generate_schedule_from_config(config)
-                if schedule is None:
-                    self._set_headers(status=500)
-                    response = {"error": "No solution found!"}
-                else:
-                    self._set_headers()
-                    response = {"schedule": schedule}
-            except Exception as e:
+        content_length = int(self.headers.get('Content-Length', 0))
+        post_data = self.rfile.read(content_length)
+        try:
+            config = json.loads(post_data)
+            schedule = generate_schedule_from_config(config)
+            if schedule is None:
                 self._set_headers(status=500)
-                response = {"error": str(e)}
-            self.wfile.write(json.dumps(response).encode('utf-8'))
-        else:
-            self.send_error(404)
+                response = {"error": "No solution found!"}
+            else:
+                self._set_headers()
+                response = {"schedule": schedule}
+        except Exception as e:
+            self._set_headers(status=500)
+            response = {"error": str(e)}
+        self.wfile.write(json.dumps(response).encode('utf-8'))
 
     def do_GET(self):
         self.send_response(200)
