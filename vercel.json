@@ -1,18 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api/index.py": {
+    "api/*.py": {
       "runtime": "@vercel/python@4.7.1"
     }
   },
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/"
+      "dest": "/api/$1.py"
     }
   ]
 }
