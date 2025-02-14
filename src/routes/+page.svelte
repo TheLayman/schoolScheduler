@@ -797,6 +797,11 @@
               class="text-gray-600 hover:text-gray-800 p-2.5 rounded-lg transition-colors border border-gray-300 hover:border-gray-400 bg-white shadow-sm flex items-center gap-2"
               aria-label="Download teacher schedule"
             >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+            Download
+          </button>
           </div>
           <div class="overflow-x-auto" id={`teacher-schedule-${teacher}`}>
             <table class="min-w-full border-collapse border border-gray-300 bg-white">
