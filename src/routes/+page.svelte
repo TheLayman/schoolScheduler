@@ -54,7 +54,7 @@
   let groupClasses: GroupClass[] = [];
   
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const PERIODS_PER_DAY = 7;
+  const PERIODS_PER_DAY = 6;
 
   let generationStatus: string = '';
 
