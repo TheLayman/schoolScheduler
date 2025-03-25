@@ -8,7 +8,7 @@ def generate_schedule_from_config(config):
     group_classes = config.get('groupClasses', [])
     
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-    num_periods_per_day = 7
+    num_periods_per_day = 6
     num_periods_per_week = num_periods_per_day * len(days)
     
     # Build subjects per class and subject periods
