@@ -32,11 +32,13 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write('GEORGE VENEEL DOGGA'.encode('utf-8'))
 
 def generate_schedule_from_config(config):
+    # Extract configuration parameters
     num_classes = config['numClasses']
     subject_teacher_mappings = config['subjectTeacherMappings']
     subject_period_mappings = config['subjectPeriodMappings']
     group_classes = config.get('groupClasses', [])
     
+    # Define scheduling constants
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
     num_periods_per_day = 6
     num_periods_per_week = num_periods_per_day * len(days)
@@ -56,18 +58,18 @@ def generate_schedule_from_config(config):
         periods = mapping['periodsPerWeek']
         subject_periods[class_id][subject] = periods
 
-    # Group assignments
+    # Identify group assignments
     group_assignments = set()
     for group in group_classes:
         subject = group['subject']
         for class_id in group['classes']:
             group_assignments.add((class_id, subject))
     
-    # Create MILP model
-    model = LpProblem("Scheduling", sense=1)  # Minimization dummy objective
+    # Initialize MILP model
+    model = LpProblem("Scheduling", sense=1)  # Minimization with dummy objective
     model += 0, "DummyObjective"
 
-    # Decision variables: schedule_vars[(class, subject, period)]
+    # Create decision variables for individual class schedules
     schedule_vars = {}
     for class_id in subjects_per_class:
         for subject in subjects_per_class[class_id]:
@@ -75,7 +77,7 @@ def generate_schedule_from_config(config):
                 var_name = f'class_{class_id}_{subject}_p{period}'
                 schedule_vars[(class_id, subject, period)] = LpVariable(var_name, cat=LpBinary)
 
-    # Constraints for non-group subjects
+    # Add constraints for non-group subjects
     for class_id in subjects_per_class:
         for subject in subjects_per_class[class_id]:
             if (class_id, subject) in group_assignments:
@@ -83,7 +85,7 @@ def generate_schedule_from_config(config):
             periods_needed = subject_periods[class_id].get(subject, 0)
             model += lpSum(schedule_vars[(class_id, subject, p)] for p in range(num_periods_per_week)) == periods_needed, f"PeriodReq_class{class_id}_{subject}"
     
-    # Teacher assignments
+    # Organize teacher assignments
     teacher_individual = {}
     for mapping in subject_teacher_mappings:
         class_id = mapping['class']
@@ -97,62 +99,70 @@ def generate_schedule_from_config(config):
         teacher = group['teacher']
         teacher_group.setdefault(teacher, set()).add(g_idx)
 
-    # Process group classes
+    # Process group classes with day and slot constraints
     group_vars = {}
     group_period_vars = {}
     for g_idx, group in enumerate(group_classes):
-    subject = group['subject']
-    classes = group['classes']
-    periods_needed = group['periodsPerWeek']
+        subject = group['subject']
+        classes = group['classes']
+        periods_needed = group['periodsPerWeek']
+        
+        # Compute allowed periods based on selectedDays and selectedSlots
+        selectedDays = group.get('selectedDays', [])
+        selectedSlots = group.get('selectedSlots', [])
+        
+        # Allowed periods from selectedDays (1-indexed: 1=Monday, 6=Saturday)
+        if selectedDays:
+            allowed_from_days = set()
+            for day in selectedDays:
+                day_index = day - 1  # Convert to 0-indexed
+                start_period = day_index * num_periods_per_day
+                end_period = start_period + num_periods_per_day
+                allowed_from_days.update(range(start_period, end_period))
+        else:
+            allowed_from_days = set(range(num_periods_per_week))
+        
+        # Allowed periods from selectedSlots (1-indexed periods within a day)
+        if selectedSlots:
+            allowed_from_slots = set()
+            for slot in selectedSlots:
+                slot_index = slot - 1  # Convert to 0-indexed
+                for day in range(len(days)):
+                    period = day * num_periods_per_day + slot_index
+                    if period < num_periods_per_week:
+                        allowed_from_slots.add(period)
+        else:
+            allowed_from_slots = set(range(num_periods_per_week))
+        
+        # Intersection of allowed periods
+        allowed = allowed_from_days.intersection(allowed_from_slots)
+        
+        # Define group variables and constraints
+        group_period_vars[g_idx] = []
+        for period in range(num_periods_per_week):
+            var_name = f'group_{subject}_g{g_idx}_p{period}'
+            group_var = LpVariable(var_name, cat=LpBinary)
+            if period not in allowed:
+                model += group_var == 0, f"GroupSlotNotAllowed_g{g_idx}_p{period}"
+            for class_id in classes:
+                model += schedule_vars[(class_id, subject, period)] == group_var, f"GroupTie_class{class_id}_{subject}_g{g_idx}_p{period}"
+            group_vars[(g_idx, period)] = group_var
+            group_period_vars[g_idx].append(group_var)
+        model += lpSum(group_period_vars[g_idx]) == periods_needed, f"GroupPeriodRequirement_g{g_idx}"
     
-    # Compute allowed periods
-    selectedDays = group.get('selectedDays', [])
-    selectedSlots = group.get('selectedSlots', [])
-    
-    # Compute allowed periods from selectedDays
-    if selectedDays:
-        allowed_from_days = set()
-        for day in selectedDays:
-            day_index = day - 1
-            start_period = day_index * num_periods_per_day
-            end_period = start_period + num_periods_per_day
-            allowed_from_days.update(range(start_period, end_period))
-    else:
-        allowed_from_days = set(range(num_periods_per_week))
-    
-    # Compute allowed periods from selectedSlots
-    if selectedSlots:
-        allowed_from_slots = set(x - 1 for x in selectedSlots)
-    else:
-        allowed_from_slots = set(range(num_periods_per_week))
-    
-    # Final allowed periods
-    allowed = allowed_from_days.intersection(allowed_from_slots)
-    
-    group_period_vars[g_idx] = []
-    for period in range(num_periods_per_week):
-        var_name = f'group_{subject}_g{g_idx}_p{period}'
-        group_var = LpVariable(var_name, cat=LpBinary)
-        if period not in allowed:
-            model += group_var == 0, f"GroupSlotNotAllowed_g{g_idx}_p{period}"
-        for class_id in classes:
-            model += schedule_vars[(class_id, subject, period)] == group_var, f"GroupTie_class{class_id}_{subject}_g{g_idx}_p{period}"
-        group_vars[(g_idx, period)] = group_var
-        group_period_vars[g_idx].append(group_var)
-    model += lpSum(group_period_vars[g_idx]) == periods_needed, f"GroupPeriodRequirement_g{g_idx}"
-    # New constraint: Each group class scheduled at most once per day
+    # Constraint: Group classes scheduled at most once per day
     for g_idx in range(len(group_classes)):
         for day in range(len(days)):
             start_period = day * num_periods_per_day
             end_period = (day + 1) * num_periods_per_day
             model += lpSum(group_vars[(g_idx, period)] for period in range(start_period, end_period)) <= 1, f"GroupAtMostOncePerDay_g{g_idx}_day{day}"
 
-    # One subject per period per class
+    # Constraint: One subject per period per class
     for class_id in subjects_per_class:
         for period in range(num_periods_per_week):
             model += lpSum(schedule_vars[(class_id, subject, period)] for subject in subjects_per_class[class_id]) <= 1, f"OneSubject_class{class_id}_p{period}"
 
-    # Teacher availability
+    # Constraint: Teacher availability
     all_teachers = set(list(teacher_individual.keys()) + list(teacher_group.keys()))
     for teacher in all_teachers:
         for period in range(num_periods_per_week):
@@ -164,12 +174,13 @@ def generate_schedule_from_config(config):
                     vars_list.append(group_vars[(g_idx, period)])
             model += lpSum(vars_list) <= 1, f"TeacherAvailability_{teacher}_p{period}"
 
+    # Solve the model
     solver = PULP_CBC_CMD(msg=0)
     model.solve(solver)
     if LpStatus[model.status] not in ['Optimal', 'Feasible']:
         return None
 
-    # Build schedule grid: days x periods x classes
+    # Build the schedule grid: days x periods x classes
     schedule_grid = []
     for day in range(len(days)):
         day_schedule = []
