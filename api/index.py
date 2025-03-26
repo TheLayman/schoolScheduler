@@ -31,7 +31,6 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write('GEORGE VENEEL DOGGA'.encode('utf-8'))
 
-
 def generate_schedule_from_config(config):
     num_classes = config['numClasses']
     subject_teacher_mappings = config['subjectTeacherMappings']
@@ -76,13 +75,6 @@ def generate_schedule_from_config(config):
                 var_name = f'class_{class_id}_{subject}_p{period}'
                 schedule_vars[(class_id, subject, period)] = LpVariable(var_name, cat=LpBinary)
 
-    # Ensure each group class is scheduled at most once per day
-for g_idx in range(len(group_classes)):
-    for day in range(len(days)):
-        start_period = day * num_periods_per_day
-        end_period = (day + 1) * num_periods_per_day
-        model += lpSum(group_vars[(g_idx, period)] for period in range(start_period, end_period)) <= 1, f"GroupAtMostOncePerDay_g{g_idx}_day{day}"
-        
     # Constraints for non-group subjects
     for class_id in subjects_per_class:
         for subject in subjects_per_class[class_id]:
@@ -126,6 +118,13 @@ for g_idx in range(len(group_classes)):
             group_period_vars[g_idx].append(group_var)
         model += lpSum(group_period_vars[g_idx]) == periods_needed, f"GroupPeriodRequirement_g{g_idx}"
     
+    # New constraint: Each group class scheduled at most once per day
+    for g_idx in range(len(group_classes)):
+        for day in range(len(days)):
+            start_period = day * num_periods_per_day
+            end_period = (day + 1) * num_periods_per_day
+            model += lpSum(group_vars[(g_idx, period)] for period in range(start_period, end_period)) <= 1, f"GroupAtMostOncePerDay_g{g_idx}_day{day}"
+
     # One subject per period per class
     for class_id in subjects_per_class:
         for period in range(num_periods_per_week):
