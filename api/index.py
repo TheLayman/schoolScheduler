@@ -101,23 +101,45 @@ def generate_schedule_from_config(config):
     group_vars = {}
     group_period_vars = {}
     for g_idx, group in enumerate(group_classes):
-        subject = group['subject']
-        classes = group['classes']
-        periods_needed = group['periodsPerWeek']
-        selectedSlots = group.get('selectedSlots')
-        allowed = set(x - 1 for x in selectedSlots) if selectedSlots and len(selectedSlots) > 0 else None
-        group_period_vars[g_idx] = []
-        for period in range(num_periods_per_week):
-            var_name = f'group_{subject}_g{g_idx}_p{period}'
-            group_var = LpVariable(var_name, cat=LpBinary)
-            if allowed is not None and period not in allowed:
-                model += group_var == 0, f"GroupSlotNotAllowed_g{g_idx}_p{period}"
-            for class_id in classes:
-                model += schedule_vars[(class_id, subject, period)] == group_var, f"GroupTie_class{class_id}_{subject}_g{g_idx}_p{period}"
-            group_vars[(g_idx, period)] = group_var
-            group_period_vars[g_idx].append(group_var)
-        model += lpSum(group_period_vars[g_idx]) == periods_needed, f"GroupPeriodRequirement_g{g_idx}"
+    subject = group['subject']
+    classes = group['classes']
+    periods_needed = group['periodsPerWeek']
     
+    # Compute allowed periods
+    selectedDays = group.get('selectedDays', [])
+    selectedSlots = group.get('selectedSlots', [])
+    
+    # Compute allowed periods from selectedDays
+    if selectedDays:
+        allowed_from_days = set()
+        for day in selectedDays:
+            day_index = day - 1
+            start_period = day_index * num_periods_per_day
+            end_period = start_period + num_periods_per_day
+            allowed_from_days.update(range(start_period, end_period))
+    else:
+        allowed_from_days = set(range(num_periods_per_week))
+    
+    # Compute allowed periods from selectedSlots
+    if selectedSlots:
+        allowed_from_slots = set(x - 1 for x in selectedSlots)
+    else:
+        allowed_from_slots = set(range(num_periods_per_week))
+    
+    # Final allowed periods
+    allowed = allowed_from_days.intersection(allowed_from_slots)
+    
+    group_period_vars[g_idx] = []
+    for period in range(num_periods_per_week):
+        var_name = f'group_{subject}_g{g_idx}_p{period}'
+        group_var = LpVariable(var_name, cat=LpBinary)
+        if period not in allowed:
+            model += group_var == 0, f"GroupSlotNotAllowed_g{g_idx}_p{period}"
+        for class_id in classes:
+            model += schedule_vars[(class_id, subject, period)] == group_var, f"GroupTie_class{class_id}_{subject}_g{g_idx}_p{period}"
+        group_vars[(g_idx, period)] = group_var
+        group_period_vars[g_idx].append(group_var)
+    model += lpSum(group_period_vars[g_idx]) == periods_needed, f"GroupPeriodRequirement_g{g_idx}"
     # New constraint: Each group class scheduled at most once per day
     for g_idx in range(len(group_classes)):
         for day in range(len(days)):
