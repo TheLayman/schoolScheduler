@@ -24,6 +24,7 @@
     subject: string;
     periodsPerWeek: number;
     selectedSlots: number[];
+    selectedDays: number[];
     classes: number[];
   }
 
@@ -207,6 +208,7 @@
       subject: g.subject,
       periodsPerWeek: g.periodsPerWeek,
       selectedSlots: g.selectedSlots,
+      selectedDays: g.selectedDays,
       classes: g.classes
     })) : [];
 
@@ -320,7 +322,7 @@
   // Functions for Group Classes
 
   function addGroupClass() {
-    groupClasses = [...groupClasses, { subject: '', periodsPerWeek: 0, selectedSlots: [], classes: [] }];
+    groupClasses = [...groupClasses, { subject: '', periodsPerWeek: 0, selectedSlots: [], selectedDays:[], classes: [] }];
   }
 
   function removeGroupClass(index: number) {
@@ -702,6 +704,16 @@
               value={group.selectedSlots.join(',')}
               on:change={(e) => group.selectedSlots = parseNumberList((e.target as HTMLInputElement).value).filter(n => !isNaN(n))}
               placeholder="Selected Slots (comma-separated)"
+              class="w-full border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            />
+          </div>
+          <!-- Selected Days -->
+          <div>
+            <input
+              type="text"
+              value={group.selectedDays.join(',')}
+              on:change={(e) => group.selectedDays = parseNumberList((e.target as HTMLInputElement).value).filter(n => !isNaN(n))}
+              placeholder="Selected Days (comma-separated)"
               class="w-full border border-gray-300 p-2.5 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
